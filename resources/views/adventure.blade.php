@@ -22,6 +22,7 @@
                 {{ __('Start New') }}
             </button>
         </div>
+        <img src={{$imageUrl}}  alt="">
     </form>
 </div>
 @endsection

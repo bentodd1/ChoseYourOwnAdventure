@@ -14,6 +14,7 @@ class AdventureSession extends Model
         'ip_address',
         'mac_address',
         'isActive',
+        'session_id'
 
     ];
 

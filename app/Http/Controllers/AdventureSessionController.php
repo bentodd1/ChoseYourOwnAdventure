@@ -7,7 +7,6 @@ use App\Models\AdventureSession;
 use Illuminate\Http\Request;
 
 
-use Illuminate\Support\Facades\Log;
 use OpenAI;
 
 class AdventureSessionController extends Controller
@@ -18,16 +17,17 @@ class AdventureSessionController extends Controller
     public function index(Request $request)
     {
         $ipAddress = $request->ip();
-
-        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true])->first();
+        $sessionId = $request->session()->getId();
+        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress,'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->first();
         if(!$adventureSession) {
-            $adventureSession = $this->createNewAdventure($ipAddress);
+            $adventureSession = $this->createNewAdventure($ipAddress, $sessionId);
         }
         $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id']])->orderBY('order', 'DESC')->first();
 
-        //$template="You are a helpful assistant that translates {input_language} to {output_language}.";
+        $image = $this->getImage($adventurePiece['content']);
+        $adventurePiece->image_url = $image;
 
-        return view('./adventure', ['message' => $adventurePiece['content']]);
+        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
     }
 
     /**
@@ -36,13 +36,20 @@ class AdventureSessionController extends Controller
     public function create(Request $request)
     {
         $ipAddress = $request->ip();
-        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true])->first();
+        $sessionId = $request->getSession()->getId();
+        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->first();
         if($adventureSession) {
             $adventureSession['isActive'] = false;
             $adventureSession->save();
         }
-        $newSession = $this->createNewAdventure($ipAddress);
-        return view('./adventure', ['message' => AdventurePiece::where(['sessionId' => $newSession['id']])->orderBY('order', 'DESC')->first()['content']]);
+        $newSession = $this->createNewAdventure($ipAddress, $sessionId);
+        $adventurePiece =  AdventurePiece::where(['sessionId' => $newSession['id']])->orderBY('order', 'DESC')->first();
+        $message = $adventurePiece['content'];
+        $image = $this->getImage($message);
+        $adventurePiece->image_url = $image;
+        $adventurePiece->save();
+
+        return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
 
     }
 
@@ -51,6 +58,7 @@ class AdventureSessionController extends Controller
      */
     public function store(Request $request)
     {
+        $request->session()->getId();
         $ipAddress = $request->ip();
 
         $response = request('response');
@@ -62,8 +70,11 @@ class AdventureSessionController extends Controller
         }
 
         $adventurePiece = $this->getResult($adventureSession['id'], $response);
+        $image = $this->getImage($adventurePiece['content']);
+        $adventurePiece->image_url = $image;
+        $adventurePiece->save();
 
-        return view('./adventure', ['message' => $adventurePiece['content']]);
+        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
 
     }
 
@@ -91,6 +102,21 @@ class AdventureSessionController extends Controller
         //
     }
 
+    public function getImage(string $content) {
+        $clientKey = env('OPENAI_API_KEY', 'default_api_key');
+        $client = OpenAI::client($clientKey);
+
+        $result = $client->images()->create([
+            'model'=>"dall-e-3",
+            'prompt'=> $content,
+            'size'=>"1024x1024",
+            'quality'=>"standard",
+            'n'=>1,
+        ]);
+
+        return $result->data[0]->url;
+    }
+
     /**
      * Remove the specified resource from storage.
      */
@@ -99,52 +125,51 @@ class AdventureSessionController extends Controller
         //
     }
 
-    public function createNewAdventure(string $ipAddress): AdventureSession
+    public function createNewAdventure(string $ipAddress, string $sessionId): AdventureSession
     {
-        $initialContent = "I need help writing a choose your own adventure story. Each story snippet can only be 5 sentences.  Let's create a romantic novel.  The main character is a male.  After the Snippet provide 2 to 4 options";
-        $initialContent2 = "You are now the guide of a mystical journey in the Whispering Woods.
-A traveler named Elara seeks the lost Gem of Serenity.
-You must navigate her through challenges, choices, and consequences,
-dynamically adapting the tale based on the traveler's decisions.
+        $initialContent2 = "In the neon-lit cityscape of Neo-Cognitiva, where the boundaries between the virtual and the real blur, you are a curious soul seeking something beyond the mundane. One day, you stumble upon a cryptic message hidden within the city's holographic network: 'Unlock the infinite within.'
+
+Intrigued and fueled by an insatiable curiosity, you follow the enigmatic trail that leads you to an unassuming building, the entrance shimmering with ethereal light. As you step inside, the world around you dissolves, and you find yourself standing in an otherworldly chamber. A disembodied voice echoes, 'Welcome to the Mind Nexus – where curiosity becomes an odyssey.'
 Your goal is to create a branching narrative experience where each choice
-leads to a new path, ultimately determining Elara's fate.
+leads to a new path, ultimately determining the characters fate.
 
 Here are some rules to follow:
-1. Start by asking the player to choose some kind of weapons that will be used later in the game
+1. Start by asking the player to choose between 3 different numbered options.
 2. Have a few paths that lead to success
-3. Have some paths that lead to death. If the user dies generate a response that explains the death and ends in the text: \"The End.\", I will search for this text to end the game
+3. Have some paths that lead to a happy ending and some paths that lead to a bad ending. If the story ends  generate a response that explains how it ended and ends in the text: \"The End.\", I will search for this text to end the game
 
 Here is the chat history, use this to understand what to say next: {chat_history}
 Human: {human_input}
 AI:";
-        $newAdventure = new AdventureSession(['ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true]);
+        $newAdventure = new AdventureSession(['ip_address' => $ipAddress, 'session_id' => $sessionId,'mac_address' => 0, 'isActive' => true]);
         $newAdventure->save();
 
         $this->getResult($newAdventure['id'], $initialContent2);
         return $newAdventure;
     }
 
-    public function getResult(string $sessionId, string $newContent) {
+    public function getResult(string $sessionId, string $newContent)
+    {
         $lastPiece = AdventurePiece::where(['sessionId' => $sessionId])->orderBY('order', 'DESC')->first();
-        if($lastPiece) {
-         $newOrder = $lastPiece['order'] + 1;
-        }
-        else {
+        if ($lastPiece) {
+            $newOrder = $lastPiece['order'] + 1;
+        } else {
             $newOrder = 1;
         }
         $adventurePiece = new AdventurePiece(['role' => "user", "content" => $newContent, "sessionId" => $sessionId, 'order' => $newOrder]);
         $adventurePiece->save();
-        $client = OpenAI::client("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");
+        $clientKey = env('OPENAI_API_KEY', 'default_api_key');
+        $client = OpenAI::client($clientKey);
         $sessionPieces = AdventurePiece::where(['sessionId' => $sessionId])->orderBY('order', 'ASC')->get();
         $messages = [];
         foreach ($sessionPieces as $sessionPiece) {
             $messages[] = ['role' => $sessionPiece['role'], 'content' => $sessionPiece['content']];
         }
-        $result = $client->chat()->create( [
+        $result = $client->chat()->create([
             "model" => "gpt-3.5-turbo",
             "messages" => $messages
         ]);
-        $newOrder = $newOrder +1;
+        $newOrder = $newOrder + 1;
 
         $adventurePiece = new AdventurePiece(['role' => 'assistant', "content" => $result->choices[0]->message->content, "sessionId" => $sessionId, 'order' => $newOrder]);
         $adventurePiece->save();

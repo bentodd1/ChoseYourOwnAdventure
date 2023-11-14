@@ -16,7 +16,6 @@ class AdventurePiece extends Model
         'order'
     ];
 
-
     public function AdventureSession()
     {
         return $this->belongsTo(AdventureSession::class, 'sessionId', 'id');
