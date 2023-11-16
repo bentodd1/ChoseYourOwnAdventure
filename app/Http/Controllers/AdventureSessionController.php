@@ -5,18 +5,24 @@ namespace App\Http\Controllers;
 use App\Models\AdventurePiece;
 use App\Models\AdventureSession;
 use Illuminate\Http\Request;
+use Firebase\JWT\JWT;
+
+use Cookie;
 
 
 use OpenAI;
 
 class AdventureSessionController extends Controller
 {
+
+    //TODO
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): string
     {
         $ipAddress = $request->ip();
+
         $sessionId = $request->session()->getId();
         $adventureSession = AdventureSession::where(['ip_address' => $ipAddress,'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->first();
         if(!$adventureSession) {
@@ -27,7 +33,9 @@ class AdventureSessionController extends Controller
         $image = $this->getImage($adventurePiece['content']);
         $adventurePiece->image_url = $image;
 
-        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
+        $response = response();
+        $guestToken = $this->createGuestToken();
+        return $response->json(['message' => $adventurePiece['content'], 'imageUrl' => $image])->header('Authorization', 'Bearer ' . $guestToken);
     }
 
     /**
@@ -38,6 +46,7 @@ class AdventureSessionController extends Controller
         $ipAddress = $request->ip();
         $sessionId = $request->getSession()->getId();
         $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->first();
+
         if($adventureSession) {
             $adventureSession['isActive'] = false;
             $adventureSession->save();
@@ -48,9 +57,7 @@ class AdventureSessionController extends Controller
         $image = $this->getImage($message);
         $adventurePiece->image_url = $image;
         $adventurePiece->save();
-
-        return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
-
+        return response()->json(['message' => $adventurePiece['content'], 'imageUrl' => $image]);
     }
 
     /**
@@ -58,7 +65,10 @@ class AdventureSessionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->session()->getId();
+        $authHeader =  $request->header('Authorization');
+        if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            $jwt = $matches[1];
+        }
         $ipAddress = $request->ip();
 
         $response = request('response');
@@ -74,8 +84,7 @@ class AdventureSessionController extends Controller
         $adventurePiece->image_url = $image;
         $adventurePiece->save();
 
-        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
-
+        return response()->json(['message' => $adventurePiece['content'], 'imageUrl' => $image, 'jwtDecode' => $jwt]);
     }
 
     /**
@@ -174,5 +183,28 @@ AI:";
         $adventurePiece = new AdventurePiece(['role' => 'assistant', "content" => $result->choices[0]->message->content, "sessionId" => $sessionId, 'order' => $newOrder]);
         $adventurePiece->save();
         return $adventurePiece;
+    }
+
+    function createGuestToken() {
+        $payload = [
+            'iat' => time(), // Issued at time
+            'exp' => time() + 7200, // Expiration time (1 hour)
+            'guest' => true // Custom claim to indicate guest user
+        ];
+
+        $jwt = JWT::encode($payload, 'your_secret_key', 'HS256');
+        return $jwt;
+    }
+
+    function verifyToken($token) {
+        try {
+            $decoded = JWT::decode($token, 'your_secret_key');
+            // Token is valid
+            // Perform the request action
+        } catch(ExpiredException $e) {
+            // Handle token expiration
+        } catch(Exception $e) {
+            // Handle invalid token
+        }
     }
 }

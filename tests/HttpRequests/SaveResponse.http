@@ -1,0 +1,7 @@
+POST http://localhost:8000/api/adventure/store
+Content-Type: application/json
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3MDAxNjgxOTUsImV4cCI6MTcwMDE3NTM5NSwiZ3Vlc3QiOnRydWV9._PrDP98HG3MBIY38J0xxNxs9DCJZoc473pX4E1qgYQM
+
+{
+    "response": "1"
+}

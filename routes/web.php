@@ -15,6 +15,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [App\Http\Controllers\AdventureSessionController::class, 'index'] );
 
-Route::post('/adventure/store',  [App\Http\Controllers\AdventureSessionController::class, 'store']);
+
 
 Route::post('/adventure/create',[App\Http\Controllers\AdventureSessionController::class, 'create']);
