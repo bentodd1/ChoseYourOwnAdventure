@@ -58,14 +58,14 @@ class AdventureSessionController extends Controller
      */
     public function store(Request $request)
     {
-        $request->session()->getId();
+        $sessionId  = $request->session()->getId();
         $ipAddress = $request->ip();
 
         $response = request('response');
 
-        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true])->first();
+        $adventureSession = AdventureSession::where(['session_id' => $sessionId, 'ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true])->first();
         if(!$adventureSession) {
-            $adventureSession = new AdventureSession(['ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true]);
+            $adventureSession = new AdventureSession(['session_id' => $sessionId, 'ip_address' => $ipAddress, 'mac_address' => 0, 'isActive' => true]);
             $adventureSession->save();
         }
 
