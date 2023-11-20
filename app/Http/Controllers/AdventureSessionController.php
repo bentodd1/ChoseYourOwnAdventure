@@ -26,8 +26,8 @@ class AdventureSessionController extends Controller
 
         $image = $this->getImage($adventurePiece['content']);
         $adventurePiece->image_url = $image;
-
-        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
+        $optionsAndText = $this->extractTextAndOptions($adventurePiece['content']);
+        return view('./layouts/mobile', ['options' => $optionsAndText['options'], 'message' => $optionsAndText['preOptionText'], 'imageUrl' => $image]);
     }
 
     /**
@@ -48,8 +48,11 @@ class AdventureSessionController extends Controller
         $image = $this->getImage($message);
         $adventurePiece->image_url = $image;
         $adventurePiece->save();
+        $optionsAndText = $this->extractTextAndOptions($adventurePiece['content']);
 
-        return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
+        return view('./layouts/mobile', ['options' => $optionsAndText['options'], 'message' => $optionsAndText['preOptionText'], 'imageUrl' => $image]);
+
+      //  return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
 
     }
 
@@ -74,7 +77,8 @@ class AdventureSessionController extends Controller
         $adventurePiece->image_url = $image;
         $adventurePiece->save();
 
-        return view('./adventure', ['message' => $adventurePiece['content'], 'imageUrl' => $image]);
+        $optionsAndText = $this->extractTextAndOptions($adventurePiece['content']);
+        return view('./layouts/mobile', ['options' => $optionsAndText['options'], 'message' => $optionsAndText['preOptionText'], 'imageUrl' => $image]);
 
     }
 
@@ -166,7 +170,7 @@ AI:";
             $messages[] = ['role' => $sessionPiece['role'], 'content' => $sessionPiece['content']];
         }
         $result = $client->chat()->create([
-            "model" => "gpt-3.5-turbo",
+            "model" => "gpt-3.5-turbo-1106",
             "messages" => $messages
         ]);
         $newOrder = $newOrder + 1;
@@ -175,4 +179,25 @@ AI:";
         $adventurePiece->save();
         return $adventurePiece;
     }
+
+    function extractTextAndOptions($text) {
+
+        $result['preOptionText']  = '';
+        // Regular expression to extract text before the first option
+        $preOptionPattern =  '/^(.*?)(?=\n?\d[\.\)]\s|The End)/s';
+        preg_match($preOptionPattern, $text, $preOptionMatches);
+        if (!empty($preOptionMatches) && count($preOptionMatches) > 0) {
+            $result['preOptionText'] = trim($preOptionMatches[0]);
+        }
+
+        // Regular expression to match the pattern of the options, including the number
+        $optionPattern = '/\d[\.\)]\s(.*?)(?=\n?\d[\.\)]\s|\Z)/s';
+        preg_match_all($optionPattern, $text, $optionMatches);
+        if (!empty($optionMatches) && count($optionMatches) > 1) {
+            $result['options'] = array_map('trim', $optionMatches[1]);
+        }
+
+        return $result;
+    }
+
 }
