@@ -7,6 +7,7 @@ use App\Models\AdventureSession;
 use Illuminate\Http\Request;
 
 
+use Illuminate\Support\Facades\Log;
 use OpenAI;
 
 class AdventureSessionController extends Controller
@@ -74,6 +75,7 @@ class AdventureSessionController extends Controller
 
         $adventurePiece = $this->getResult($adventureSession['id'], $response);
         $image = $this->getImage($adventurePiece['content']);
+        Log::info($image);
         $adventurePiece->image_url = $image;
         $adventurePiece->save();
 
