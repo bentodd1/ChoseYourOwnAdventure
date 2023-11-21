@@ -11,9 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('adventure_pieces', function (Blueprint $table) {
-            $table->text("image_url")->change();
-        });
+        //
     }
 
     /**
@@ -21,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('adventure_session', function (Blueprint $table) {
-            //
-        });
+        //
     }
 };
