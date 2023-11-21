@@ -13,7 +13,8 @@ class AdventurePiece extends Model
         'sessionId',
         'role',
         'content',
-        'order'
+        'order',
+        'image_url'
     ];
 
     public function AdventureSession()
