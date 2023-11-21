@@ -166,7 +166,7 @@ AI:";
         } else {
             $newOrder = 1;
         }
-        $adventurePiece = new AdventurePiece(['role' => "user", "content" => $newContent, "sessionId" => $sessionId, 'order' => $newOrder]);
+        $adventurePiece = new AdventurePiece(['role' => "user", "content" => $newContent, "sessionId" => $sessionId, 'order' => $newOrder, 'image_url' => '']);
         $adventurePiece->save();
         $clientKey = env('OPENAI_API_KEY', 'default_api_key');
         $client = OpenAI::client($clientKey);
@@ -181,7 +181,7 @@ AI:";
         ]);
         $newOrder = $newOrder + 1;
 
-        $adventurePiece = new AdventurePiece(['role' => 'assistant', "content" => $result->choices[0]->message->content, "sessionId" => $sessionId, 'order' => $newOrder]);
+        $adventurePiece = new AdventurePiece(['role' => 'assistant', "content" => $result->choices[0]->message->content, "sessionId" => $sessionId, 'order' => $newOrder, 'image_url' => '']);
         $adventurePiece->save();
         return $adventurePiece;
     }
