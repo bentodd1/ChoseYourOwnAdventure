@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::table('adventure_pieces', function (Blueprint $table) {
             $table->text("image_url")->default('')->change();
-
         });
     }
 

@@ -24,6 +24,10 @@ class AdventureSessionController extends Controller
             $adventureSession = $this->createNewAdventure($ipAddress, $sessionId);
         }
         $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id']])->orderBY('order', 'DESC')->first();
+        if(!$adventurePiece) {
+            $adventureSession = $this->createNewAdventure($ipAddress, $sessionId);
+            $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id']])->orderBY('order', 'DESC')->first();
+        }
 
         $image = $this->getImage($adventurePiece['content']);
         $adventurePiece->image_url = $image;
