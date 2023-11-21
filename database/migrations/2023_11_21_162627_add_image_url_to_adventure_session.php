@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('adventure_pieces', function (Blueprint $table) {
-            $table->string("session_id")->default('');
+            $table->string("image_url")->default('');
         });
     }
 
