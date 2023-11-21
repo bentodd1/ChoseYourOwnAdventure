@@ -115,7 +115,7 @@ class AdventureSessionController extends Controller
     public function getImage(string $content) {
         $clientKey = env('OPENAI_API_KEY', 'default_api_key');
         $client = OpenAI::client($clientKey);
-
+        try {
         $result = $client->images()->create([
             'model'=>"dall-e-3",
             'prompt'=> $content,
@@ -123,6 +123,10 @@ class AdventureSessionController extends Controller
             'quality'=>"standard",
             'n'=>1,
         ]);
+        }
+        catch(\Exception $e) {
+            return 'https://www.bing.com/images/create/3d-glitched-world-with-spider-man2c-dmt-style/653ff16d31694cf1ab4292b0a5d1e42c?id=yllpwq33A1UEaTP66NAGtw%3d%3d&view=detailv2&idpp=genimg';
+        }
 
         return $result->data[0]->url;
     }
