@@ -23,10 +23,10 @@ class AdventureSessionController extends Controller
         if(!$adventureSession) {
             $adventureSession = $this->createNewAdventure($ipAddress, $sessionId);
         }
-        $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id']])->orderBY('order', 'DESC')->first();
+        $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id'], 'role' => 'assistant'])->orderBY('order', 'DESC')->first();
         if(!$adventurePiece) {
             $adventureSession = $this->createNewAdventure($ipAddress, $sessionId);
-            $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id']])->orderBY('order', 'DESC')->first();
+            $adventurePiece = AdventurePiece::where(['sessionId' => $adventureSession['id'], 'role' => 'assistant'])->orderBY('order', 'DESC')->first();
         }
 
         $image = $this->getImage($adventurePiece['content']);
@@ -42,13 +42,15 @@ class AdventureSessionController extends Controller
     {
         $ipAddress = $request->ip();
         $sessionId = $request->getSession()->getId();
-        $adventureSession = AdventureSession::where(['ip_address' => $ipAddress, 'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->first();
-        if($adventureSession) {
-            $adventureSession['isActive'] = false;
-            $adventureSession->save();
+        $adventureSessions = AdventureSession::where(['ip_address' => $ipAddress, 'session_id' => $sessionId, 'mac_address' => 0, 'isActive' => true])->get();
+        foreach ($adventureSessions as $adventureSession) {
+            if ($adventureSession) {
+                $adventureSession['isActive'] = false;
+                $adventureSession->save();
+            }
         }
         $newSession = $this->createNewAdventure($ipAddress, $sessionId);
-        $adventurePiece =  AdventurePiece::where(['sessionId' => $newSession['id']])->orderBY('order', 'DESC')->first();
+        $adventurePiece = AdventurePiece::where(['sessionId' => $newSession['id'], 'role' => 'assistant'])->orderBY('order', 'DESC')->first();
         $message = $adventurePiece['content'];
         $image = $this->getImage($message);
         $adventurePiece->image_url = $image;
@@ -57,7 +59,7 @@ class AdventureSessionController extends Controller
 
         return view('./layouts/mobile', ['options' => $optionsAndText['options'], 'message' => $optionsAndText['preOptionText'], 'imageUrl' => $image]);
 
-      //  return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
+        //  return view('./adventure', ['message' => $message, 'imageUrl' => $image]);
 
     }
 
