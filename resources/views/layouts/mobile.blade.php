@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>The Mind Nexus</title>
+    <title>City of Love. Your Adventure, Your Romance.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>The Mind Nexus</h1>
+            <h1>City of Love. Your Adventure, Your Romance.</h1>
 
             <!-- Multiline Text Blob -->
             <p>

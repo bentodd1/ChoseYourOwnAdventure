@@ -143,9 +143,7 @@ class AdventureSessionController extends Controller
 
     public function createNewAdventure(string $ipAddress, string $sessionId): AdventureSession
     {
-        $initialContent2 = "In the neon-lit cityscape of Neo-Cognitiva, where the boundaries between the virtual and the real blur, you are a curious soul seeking something beyond the mundane. One day, you stumble upon a cryptic message hidden within the city's holographic network: 'Unlock the infinite within.'
-
-Intrigued and fueled by an insatiable curiosity, you follow the enigmatic trail that leads you to an unassuming building, the entrance shimmering with ethereal light. As you step inside, the world around you dissolves, and you find yourself standing in an otherworldly chamber. A disembodied voice echoes, 'Welcome to the Mind Nexus – where curiosity becomes an odyssey.'
+        $initialContent2 =  "Welcome to the City of Love. Your Adventure, Your Romance. Let's make an interesting choose your own adventure romantic novel.  Do not include chapters.
 Your goal is to create a branching narrative experience where each choice
 leads to a new path, ultimately determining the characters fate.
 
