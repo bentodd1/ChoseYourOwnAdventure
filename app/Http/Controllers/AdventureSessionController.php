@@ -143,12 +143,13 @@ class AdventureSessionController extends Controller
 
     public function createNewAdventure(string $ipAddress, string $sessionId): AdventureSession
     {
-        $initialContent2 =  "Welcome to the City of Love. Your Adventure, Your Romance. Let's make an interesting choose your own adventure romantic novel.  Do not include chapters.
+        $initialContent2 =  "Welcome to the City of Love. Let's make an interesting choose your own adventure romantic novel.  Do not include chapters.
 Your goal is to create a branching narrative experience where each choice
 leads to a new path, ultimately determining the characters fate.
 
 Here are some rules to follow:
 1. Start by asking the player to choose between 3 different numbered options.
+2. Each prompt is one part of the story.
 2. Have a few paths that lead to success
 3. Have some paths that lead to a happy ending and some paths that lead to a bad ending. If the story ends  generate a response that explains how it ended and ends in the text: \"The End.\", I will search for this text to end the game
 
@@ -180,7 +181,7 @@ AI:";
             $messages[] = ['role' => $sessionPiece['role'], 'content' => $sessionPiece['content']];
         }
         $result = $client->chat()->create([
-            "model" => "gpt-3.5-turbo-1106",
+            "model" => "gpt-4-1106-preview",
             "messages" => $messages
         ]);
         $newOrder = $newOrder + 1;
